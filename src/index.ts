@@ -6,41 +6,57 @@ import Byte = GoogleAppsScript.Byte;
  * Gives price for symbol
  *
  * @param {symbol} symbol to look up
- * @param {base} quote currency (eg. USD)
+ * @param base
  * @param {date} date object eg 10/26/2020
- * @param {exchange} such as "coinbase" etc
+ * @param exchange
  * @return The spot closing price for that date
  */
-function csprice(symbol:string, base: string, date, exchange:string) {
-  return 9999
+function csprice(symbol: string, base: string, date: Date, exchange: string) {
+
+  switch (exchange.toLowerCase()) {
+
+    case "coinbase":
+      return getCoinbasePrice(symbol,base,date)
+
+    case "huobi":
+      return getHuobiPrice(symbol,base,date)
+
+    case "binance":
+      return 2222
+
+    default:
+      return "unknown exchange: " + exchange
+  }
 }
 
+const getHuobiPrice = (symbol: string, base: string, date: Date) => {
 
-/**
- *
- * @param date - in YYYY-MM-DD format
- * @param pair - "BTC-USD"
- */
+  //https://api.huobi.pro/market/history/kline?symbol=btcusdt&period=1day&size=1&start=1604065179776
 
-const getCoinbasePrice = (date: string, pair: string) => {
-
-
-  let requestUrl = `https://api.coinbase.com/v2/prices/${pair}/spot?date=${date}`;
-
-  //Logger.log(requestUrl)
-
+  const formattedTimestamp = date.getTime()
+  Logger.log("timestamp: ", formattedTimestamp)
+  let requestUrl = `https://api.huobi.pro/market/history/kline?symbol=${symbol.toLowerCase()}${base.toLowerCase()}&period=1day&size=1&start=${formattedTimestamp}`;
+  Logger.log("request url: ", requestUrl)
   const response = UrlFetchApp.fetch(requestUrl)
-
-
   Logger.log(response.getContentText());
-
-  const responseJson = JSON.parse(response.getContentText())
-
-
-
-  return "999"
+  const parsedResponse = JSON.parse(response.getContentText())
+  return Number(parsedResponse.data[0].close)
 
 }
+
+
+const getCoinbasePrice = (symbol: string, base: string, date: Date) => {
+
+  const formattedDate = Utilities.formatDate(date, 'GMT', 'yyyy-MM-dd')
+
+  let requestUrl = `https://api.coinbase.com/v2/prices/${symbol}-${base}/spot?date=${formattedDate}`;
+  const response = UrlFetchApp.fetch(requestUrl)
+  Logger.log(response.getContentText());
+  const parsedResponse = JSON.parse(response.getContentText())
+  return Number(parsedResponse.data.amount)
+}
+
+
 
 
 const getHistoricalPrice = (timestamp: Date, symbol: string, baseAsset: string) => {
