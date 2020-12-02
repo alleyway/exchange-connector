@@ -47,9 +47,15 @@ const getHuobiPrice = (symbol: string, base: string, date: Date) => {
 
 const getCoinbasePrice = (symbol: string, base: string, date: Date) => {
 
+  const formattedDateToday = Utilities.formatDate(new Date(), 'GMT', 'yyyy-MM-dd')
   const formattedDate = Utilities.formatDate(date, 'GMT', 'yyyy-MM-dd')
 
-  let requestUrl = `https://api.coinbase.com/v2/prices/${symbol}-${base}/spot?date=${formattedDate}`;
+  let requestUrl = `https://api.coinbase.com/v2/prices/${symbol}-${base}/spot`;
+
+  if (formattedDate !== formattedDateToday){
+        requestUrl = requestUrl + `?date=${formattedDate}`
+  }
+  Logger.log(requestUrl)
   const response = UrlFetchApp.fetch(requestUrl)
   Logger.log(response.getContentText());
   const parsedResponse = JSON.parse(response.getContentText())
