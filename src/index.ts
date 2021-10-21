@@ -80,7 +80,7 @@ function csprice(symbol: string, base: string, date: Date, exchange: string) {
             return getHuobiPrice(symbol, base, date)
 
         case "binance":
-            return 2222
+            return getBinancePrice(symbol, base, date)
 
         default:
             return "unknown exchange: " + exchange
@@ -103,12 +103,12 @@ const getHuobiPrice = (symbol: string, base: string, date: Date) => {
 }
 
 
-const getCoinbasePrice = (symbol: string, base: string, date: Date) => {
+const getCoinbasePrice = (base: string, quote: string, date: Date) => {
 
     const formattedDateToday = Utilities.formatDate(new Date(), 'GMT', 'yyyy-MM-dd')
     const formattedDate = Utilities.formatDate(date, 'GMT', 'yyyy-MM-dd')
 
-    let requestUrl = `https://api.coinbase.com/v2/prices/${symbol}-${base}/spot`;
+    let requestUrl = `https://api.coinbase.com/v2/prices/${base}-${quote}/spot`;
 
     if (formattedDate !== formattedDateToday) {
         requestUrl = requestUrl + `?date=${formattedDate}`
@@ -118,6 +118,38 @@ const getCoinbasePrice = (symbol: string, base: string, date: Date) => {
     Logger.log(response.getContentText());
     const parsedResponse = JSON.parse(response.getContentText())
     return Number(parsedResponse.data.amount)
+}
+
+const getBinancePrice = (symbol: string, quote: string, date: Date) => {
+
+    const formattedDateToday = Utilities.formatDate(new Date(), 'GMT', 'yyyy-MM-dd')
+    const formattedDate = Utilities.formatDate(date, 'GMT', 'yyyy-MM-dd')
+
+
+
+    let requestUrl
+
+    if (formattedDate !== formattedDateToday) { //it's not today
+        console.log(`Fetching kline price because it's not today: ${formattedDate} != ${formattedDateToday}`)
+
+        requestUrl = `https://api3.binance.com/api/v3/klines?symbol=${symbol}${quote}&interval=1d&startTime=${date.getTime()}&limit=1`
+        Logger.log(requestUrl)
+        const response = UrlFetchApp.fetch(requestUrl)
+        Logger.log(response.getContentText());
+        const parsedResponse = JSON.parse(response.getContentText())
+        return Number(parsedResponse[0][4])
+    } else {
+        console.log("fetching current price because it's today")
+        // it is today, so get current price
+        requestUrl = `https://api3.binance.com/api/v3/avgPrice?symbol=${symbol}${quote}`;
+        Logger.log(requestUrl)
+        const response = UrlFetchApp.fetch(requestUrl)
+        Logger.log(response.getContentText());
+        const parsedResponse = JSON.parse(response.getContentText())
+        return Number(parsedResponse.price)
+    }
+
+
 }
 
 
@@ -140,7 +172,7 @@ const getByBitBalances = (apiKey: string, secret: string) => {
 
     const signature = getSignature(params, secret)
 
-    Logger.log("sig: ", signature)
+    Logger.log("sig: " + signature)
 
     params["sign"] = signature
 
@@ -156,10 +188,13 @@ const getByBitBalances = (apiKey: string, secret: string) => {
 
     let requestUrl = `https://api.bybit.com/v2/private/wallet/balance?${queryString}`;
 
-    //Logger.log(requestUrl)
+    Logger.log(requestUrl)
 
     const response = UrlFetchApp.fetch(requestUrl)
 
+    //if (response.getResponseCode() !== 200) {
+        Logger.log("error " + response.getResponseCode() +  response.getContentText())
+    //}
 
     //Logger.log(response.getContentText());
 
@@ -177,7 +212,7 @@ const getSignature = (parameters, secret) => {
     });
     orderedParams = orderedParams.substring(0, orderedParams.length - 1);
 
-    Logger.log("ordered: ", JSON.stringify(orderedParams))
+    Logger.log("ordered: " + JSON.stringify(orderedParams))
 
     const signature = Utilities.computeHmacSha256Signature(orderedParams, secret)
         .map(function (chr) {
