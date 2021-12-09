@@ -6,7 +6,8 @@
   "scripts": {
     "push": "clasp push",
     "test": "echo \\\"Error: no tests specified\\\" && exit 1",
-    "bybit_balances": "dotenv -- cross-var clasp run getByBitBalances -p '[\"%BYBIT_API_KEY%\", \"%BYBIT_API_SECRET%\"]'"
+    "bybit_balances": "dotenv -- cross-var clasp run getByBitBalances -p '[\"%BYBIT_API_KEY%\", \"%BYBIT_API_SECRET%\"]'",
+    "ftx_balance_sum": "dotenv -- cross-var clasp run getFtxBalanceSum -p '[\"%FTX_API_KEY%\", \"%FTX_API_SECRET%\"]'"
   },
   "keywords": [],
   "author": "",

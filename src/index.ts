@@ -158,6 +158,74 @@ const getHistoricalPrice = (timestamp: Date, symbol: string, baseAsset: string) 
 
 }
 
+const createFtxSignature = (secret, ts, method, pathUrl, payloadIfPost?) => {
+
+    let payload = `${ts}${method}${pathUrl}${payloadIfPost || ""}`
+
+
+    const signature = Utilities.computeHmacSha256Signature(payload, secret)
+        .map(function (chr) {
+            return (chr + 256).toString(16).slice(-2)
+        })
+        .join('')
+
+    return signature
+
+    //return createHmac('sha256', secret).update(orderedParams).digest('hex');
+}
+
+
+const getFtxBalanceSum = (apiKey: string, secret: string) => {
+
+    Logger.log("getFtxBalanceSum()")
+
+    /*
+    ts = int(time.time() * 1000)
+request = Request('GET', '<api_endpoint>')
+prepared = request.prepare()
+signature_payload = f'{ts}{prepared.method}{prepared.path_url}'.encode()
+signature = hmac.new('YOUR_API_SECRET'.encode(), signature_payload, 'sha256').hexdigest()
+
+request.headers['FTX-KEY'] = 'YOUR_API_KEY'
+request.headers['FTX-SIGN'] = signature
+request.headers['FTX-TS'] = str(ts)
+     */
+
+
+    const ts = Date.now().toString();
+
+    const pathUrl = "/api/wallet/balances"
+
+    const signature = createFtxSignature(secret, ts, "GET", pathUrl)
+
+    let requestUrl = `https://ftx.com/${pathUrl}`;
+
+
+    const headers = {
+        'FTX-KEY': apiKey,
+        'FTX-TS': ts,
+        'FTX-SIGN': signature
+    }
+
+
+    Logger.log(requestUrl)
+
+    const response = UrlFetchApp.fetch(requestUrl, {headers})
+
+    //if (response.getResponseCode() !== 200) {
+    Logger.log("error " + response.getResponseCode() +  response.getContentText())
+    //}
+
+    //Logger.log(response.getContentText());
+
+    const responseJson = JSON.parse(response.getContentText())
+
+    return responseJson.result.reduce((acc, val) => {
+        return acc + val.usdValue
+    }, 0)
+
+}
+
 
 const getByBitBalances = (apiKey: string, secret: string) => {
 
@@ -170,7 +238,7 @@ const getByBitBalances = (apiKey: string, secret: string) => {
         "api_key": apiKey,
     };
 
-    const signature = getSignature(params, secret)
+    const signature = createByBitSignature(params, secret)
 
     Logger.log("sig: " + signature)
 
@@ -205,7 +273,7 @@ const getByBitBalances = (apiKey: string, secret: string) => {
 }
 
 
-const getSignature = (parameters, secret) => {
+const createByBitSignature = (parameters, secret) => {
     let orderedParams = "";
     Object.keys(parameters).sort().forEach(function (key) {
         orderedParams += key + "=" + parameters[key] + "&";
@@ -224,3 +292,5 @@ const getSignature = (parameters, secret) => {
 
     //return createHmac('sha256', secret).update(orderedParams).digest('hex');
 }
+
+
