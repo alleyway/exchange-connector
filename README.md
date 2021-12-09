@@ -1,5 +1,25 @@
 # Get balances from exchange to use in google sheets
 
+## get running
+
+create a creds.json file by running the following:
+
+    clasp open --creds
+
+then login with:
+
+    clasp login --creds creds.json
+
+Run a function remotely:
+
+    clasp run getByBitBalances -p '["BYBIT_API_KEY", "BYBIT_API_SECRET"]'
+
+
+View execution logs here:
+
+[https://script.google.com/home/projects/15AEyyWJfL5iNl5d_QURHUB8v7RMTXKp6b-Ma33ODvMPf7LGTNPPm7CHH/executions](https://script.google.com/home/projects/15AEyyWJfL5iNl5d_QURHUB8v7RMTXKp6b-Ma33ODvMPf7LGTNPPm7CHH/executions)
+
+
 ## usage
 
 Open sheets, script editor
