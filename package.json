@@ -7,7 +7,8 @@
     "push": "clasp push",
     "test": "echo \\\"Error: no tests specified\\\" && exit 1",
     "bybit_balances": "dotenv -- cross-var clasp run getByBitBalances -p '[\"%BYBIT_API_KEY%\", \"%BYBIT_API_SECRET%\"]'",
-    "ftx_balance_sum": "dotenv -- cross-var clasp run getFtxBalanceSum -p '[\"%FTX_API_KEY%\", \"%FTX_API_SECRET%\"]'"
+    "ftx_balance_sum": "dotenv -- cross-var clasp run getFtxBalanceSum -p '[\"%FTX_API_KEY%\", \"%FTX_API_SECRET%\"]'",
+    "zapper_balance_sum": "dotenv -- cross-var clasp run getZapperBalanceSum -p '[\"%ZAPPER_API_KEY%\", \"%ZAPPER_ETH_ADDRESS%\"]'"
   },
   "keywords": [],
   "author": "",

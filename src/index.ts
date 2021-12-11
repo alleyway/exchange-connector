@@ -174,6 +174,99 @@ const createFtxSignature = (secret, ts, method, pathUrl, payloadIfPost?) => {
     //return createHmac('sha256', secret).update(orderedParams).digest('hex');
 }
 
+const getZapperBalanceSum = (apiKey: string, ethAddress:string) => {
+    Logger.log("getZapperFiBalanceSum()")
+
+    const headers = {
+        'accept': "*/*",
+    }
+
+    let requestUrl = `https://api.zapper.fi/v1/balances?addresses%5B%5D=${ethAddress}&api_key=${apiKey}`;
+
+    Logger.log(requestUrl)
+
+    const response = UrlFetchApp.fetch(requestUrl, {headers})
+
+    const content = response.getContentText()
+
+    // Logger.log("code " + response.getResponseCode() +  content)
+
+
+    const arr = content.split("\n");
+
+
+    const balance = arr.reduce((acc, val, index, array) => {
+
+        if (val === "event: balance") {
+            // console.log("val: " + val)
+            const dataLineArray = array[index+1].split("data:")
+            let jsonString = dataLineArray[1];
+            if (jsonString){
+
+                const json = JSON.parse(jsonString)
+
+                /*
+                {
+                    "network": "ethereum",
+                    "appId": "olympus",
+                    "balances": {
+                    "0x2d390ff96c63fc501d70098ada55df965a01c31d": {
+                        "meta": [
+                            {
+                                "label": "Total",
+                                "value": 644.41222704066,
+                                "type": "dollar"
+                            },
+                            {
+                                "label": "Assets",
+                                "value": 644.41222704066,
+                                "type": "dollar"
+                            },
+                            {
+                                "label": "Debt",
+                                "value": 0,
+                                "type": "dollar"
+                            }
+                        ]
+                    }
+                }
+                }
+                */
+                const ethAddresses = Object.keys(json.balances);
+
+                const allAddressTotal = ethAddresses.reduce((acc, ethAddress) => {
+                    let metaArray = json.balances?.[ethAddress]?.meta;
+                    if (metaArray) {
+
+                        const metaTotal = metaArray.reduce((total, metaItem) => {
+                            if (metaItem.label === "Total") {
+                                return total + metaItem.value
+                            }
+                            return total
+                        }, 0)
+                        return acc + metaTotal
+
+                    }
+                    return acc
+                }, 0)
+
+                return acc + allAddressTotal
+            }
+
+        }
+
+
+        return acc
+    }, 0)
+
+
+
+
+
+    return balance
+
+
+    }
 
 const getFtxBalanceSum = (apiKey: string, secret: string) => {
 
