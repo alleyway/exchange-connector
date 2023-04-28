@@ -19,6 +19,8 @@ View execution logs here:
 
 [https://script.google.com/home/projects/15AEyyWJfL5iNl5d_QURHUB8v7RMTXKp6b-Ma33ODvMPf7LGTNPPm7CHH/executions](https://script.google.com/home/projects/15AEyyWJfL5iNl5d_QURHUB8v7RMTXKp6b-Ma33ODvMPf7LGTNPPm7CHH/executions)
 
+    clasp logs --open
+
 
 ## usage
 
